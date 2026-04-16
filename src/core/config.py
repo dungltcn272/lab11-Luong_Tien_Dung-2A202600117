@@ -2,14 +2,19 @@
 Lab 11 — Configuration & API Key Setup
 """
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 
 def setup_api_key():
-    """Load Google API key from environment or prompt."""
-    if "GOOGLE_API_KEY" not in os.environ:
-        os.environ["GOOGLE_API_KEY"] = input("Enter Google API Key: ")
-    os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "0"
-    print("API key loaded.")
+    """Load .env variables, then ensure OpenAI API key exists."""
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    load_dotenv(dotenv_path=env_path)
+
+    if "OPENAI_API_KEY" not in os.environ:
+        os.environ["OPENAI_API_KEY"] = input("Enter OpenAI API Key: ")
+    print(f"OpenAI API key loaded. (.env: {env_path.exists()})")
 
 
 # Allowed banking topics (used by topic_filter)

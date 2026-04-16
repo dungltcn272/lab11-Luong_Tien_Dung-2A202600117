@@ -83,20 +83,17 @@ async def part3_testing():
     print("PART 3: Security Testing Pipeline")
     print("=" * 60)
 
-    from testing.testing import run_comparison, print_comparison, SecurityTestPipeline
-    from agents.agent import create_unsafe_agent
-    from guardrails.audit_log import AuditLogPlugin, MonitoringAlert
-
-    audit_logger = AuditLogPlugin()
-    monitor = MonitoringAlert(
-        min_total_entries=20,
-        blocked_rate_threshold=0.40,
-        error_count_threshold=2,
+    from testing.testing import (
+        SecurityTestPipeline,
+        generate_deepteam_dataset,
+        print_comparison,
+        run_comparison,
     )
+    from agents.agent import create_unsafe_agent
 
     # TODO 10: Before vs after comparison
     print("\n--- TODO 10: Before/After Comparison ---")
-    unprotected, protected = await run_comparison(audit_logger=audit_logger)
+    unprotected, protected = await run_comparison()
     if unprotected and protected:
         print_comparison(unprotected, protected)
     else:
@@ -105,16 +102,24 @@ async def part3_testing():
     # TODO 11: Automated security pipeline
     print("\n--- TODO 11: Security Test Pipeline ---")
     agent, runner = create_unsafe_agent()
-    pipeline = SecurityTestPipeline(agent, runner, audit_logger=audit_logger)
+    pipeline = SecurityTestPipeline(agent, runner)
     results = await pipeline.run_all()
     if results:
         pipeline.print_report(results)
     else:
         print("Complete TODO 11 to see the pipeline report.")
 
-    audit_logger.export_json("audit_log.json")
-    print("Audit log exported: audit_log.json")
-    monitor.check_metrics(audit_logger.logs)
+    print("\n--- Mock Dataset: Vietnamese Red/Blue Team Cases ---")
+    mock_results = await pipeline.run_mock_dataset()
+    pipeline.print_report(mock_results)
+
+    print("\n--- DeepTeam Integration: Generate Additional Test Cases ---")
+    try:
+        await generate_deepteam_dataset(quick_mode=True)
+    except ImportError as e:
+        print(f"DeepTeam not available: {e}")
+    except Exception as e:
+        print(f"DeepTeam generation failed: {e}")
 
 
 def part4_hitl():
